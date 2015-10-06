@@ -5,6 +5,7 @@
  * the BSD 2-Clause license. Note that NO WARRANTY is provided.
  * See "LICENSE_BSD2.txt" for details.
  *
+ * @TAG(NICTA_BSD)
  *)
 
 theory NonDetMonadVCG
@@ -177,10 +178,7 @@ lemma pred_disjI2[intro]: "Q x \<Longrightarrow> (P or Q) x"
   by (simp add: pred_disj_def)
 
 lemma pred_disj_app[simp]: "(P or Q) x = (P x \<or> Q x)"
-  by(simp add:pred_disj_def)
-
-lemma bipred_disjE[elim!]: "\<lbrakk> (P or Q) x; P x \<Longrightarrow> R; Q x \<Longrightarrow> R \<rbrakk> \<Longrightarrow> R"
-  by (fastforce simp: pred_disj_def)
+  by auto
 
 lemma bipred_disjI1[intro]: "P x y \<Longrightarrow> (P Or Q) x y"
   by (simp add: bipred_disj_def)
@@ -540,7 +538,7 @@ lemma hoare_return_simp:
 
 lemma hoare_gen_asm:
   "(P \<Longrightarrow> \<lbrace>P'\<rbrace> f \<lbrace>Q\<rbrace>) \<Longrightarrow> \<lbrace>P' and K P\<rbrace> f \<lbrace>Q\<rbrace>"
-  by (fastforce simp add: valid_def K_def)
+  by (fastforce simp add: valid_def)
 
 lemma hoare_when_wp [wp]:
  "\<lbrakk> P \<Longrightarrow> \<lbrace>Q\<rbrace> f \<lbrace>R\<rbrace> \<rbrakk> \<Longrightarrow> \<lbrace>if P then Q else R ()\<rbrace> when P f \<lbrace>R\<rbrace>"
@@ -1560,11 +1558,17 @@ lemma wpc_helper_no_fail_final:
   "no_fail Q f \<Longrightarrow> wpc_helper (P, P') (Q, Q') (no_fail P f)"
   by (clarsimp simp: wpc_helper_def elim!: no_fail_pre)
 
+lemma wpc_helper_validNF:
+  "\<lbrace>Q\<rbrace> g \<lbrace>S\<rbrace>! \<Longrightarrow> wpc_helper (P, P') (Q, Q') \<lbrace>P\<rbrace> g \<lbrace>S\<rbrace>!"
+  apply (clarsimp simp: wpc_helper_def)
+  by (metis hoare_wp_combs(2) no_fail_pre validNF_def)
+
 wpc_setup "\<lambda>m. \<lbrace>P\<rbrace> m \<lbrace>Q\<rbrace>" wpc_helper_valid
 wpc_setup "\<lambda>m. \<lbrace>P\<rbrace> m \<lbrace>Q\<rbrace>,\<lbrace>E\<rbrace>" wpc_helper_validE
 wpc_setup "\<lambda>m. \<lbrace>P\<rbrace> m \<lbrace>Q\<rbrace>,-" wpc_helper_validE_R
 wpc_setup "\<lambda>m. \<lbrace>P\<rbrace> m -,\<lbrace>E\<rbrace>" wpc_helper_validR_R
 wpc_setup "\<lambda>m. no_fail P m" wpc_helper_no_fail_final
+wpc_setup "\<lambda>m. \<lbrace>P\<rbrace> m \<lbrace>Q\<rbrace>!" wpc_helper_validNF
 
 
 lemma in_liftM:
@@ -1656,14 +1660,7 @@ lemma exec_put:
 lemma bind_execI:
   "\<lbrakk> (r'',s'') \<in> fst (f s); \<exists>x \<in> fst (g r'' s''). P x \<rbrakk> \<Longrightarrow>
   \<exists>x \<in> fst ((f >>= g) s). P x"
-  apply (clarsimp simp add: in_bind split_def bind_def)
-  apply (rule bexI)
-   apply (rule bexI)
-    apply assumption
-   prefer 2
-   apply assumption
-  apply simp
-  done
+  by (force simp: in_bind split_def bind_def)
 
 lemma True_E_E [wp]: "\<lbrace>\<top>\<rbrace> f -,\<lbrace>\<top>\<top>\<rbrace>"
   by (auto simp: validE_E_def validE_def valid_def split: sum.splits)

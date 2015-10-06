@@ -5,6 +5,7 @@
  * the BSD 2-Clause license. Note that NO WARRANTY is provided.
  * See "LICENSE_BSD2.txt" for details.
  *
+ * @TAG(NICTA_BSD)
  *)
 
 theory WP
@@ -28,6 +29,8 @@ where
  "postconditions P Q = (\<lambda>a b. P a b \<and> Q a b)"
 
 ML_file "WP-method.ML"
+
+declare [[wp_warn_unused = false]]
 
 setup WeakestPre.setup
 
